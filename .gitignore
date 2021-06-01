@@ -1,0 +1,4 @@
+nasdaq_screener.csv
+__pycache__/
+.env/
+.ipynb_checkpoints
