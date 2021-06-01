@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 def get_ticker_record(ticker):
     today = dt.datetime.today().strftime('%Y-%m-%d')
-    previous_date = dt.datetime.today() - dateutil.relativedelta.relativedelta(months=3)
+    previous_date = dt.datetime.today() - dateutil.relativedelta.relativedelta(months=1)
     previous_date = previous_date.strftime('%Y-%m-%d')
 
     df = pdr.get_data_yahoo(ticker, previous_date, today)
