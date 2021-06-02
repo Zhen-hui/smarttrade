@@ -114,13 +114,16 @@ def get_single_ticker_info(ticker):
         single_ticker_info.append(ticker_record['signal'][-2])
 
         return single_ticker_info
-    except:
+    except Exception as e:
+        #print(e)
         return None
 
 
 if __name__ == '__main__':
     ticker = 'BB'
     ticker_record = get_ticker_record(ticker)
+    print(ticker_record)
+    exit()
     ticker_record = compute_rsi(ticker_record)
     ticker_record = compute_macd(ticker_record)
     ticker_record
