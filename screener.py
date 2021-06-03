@@ -42,26 +42,26 @@ if __name__ == '__main__':
             if single_ticker_info is not None:
                 all_tickers.append(single_ticker_info)
             end = time.process_time()
-            time.sleep(DELAY-(end-start))
+            if (end-start) < DELAY:
+                time.sleep(DELAY-(end-start))
             
     columns = ['ticker', 'close t', 'volume t', 'RSI t', 'MACD t', 'signal t', 
                'close t-1', 'volume t-1', 'RSI t-1', 'MACD t-1', 'signal t-1']
 
     df = pd.DataFrame(all_tickers, columns = columns)
-    print(df)
 
     # 0. filter by volume
     df_vol = df.loc[df['volume t'] > 50000]
-    df_vol.to_csv(out_dir + "volume.csv")
+    df_vol.to_csv(out_dir + "volume.csv", index=False)
 
     # 1. close t > close t-1
     df_close = df_vol.loc[df['close t'] > df['close t-1']]
-    df_close.to_csv(out_dir + "close.csv")
+    df_close.to_csv(out_dir + "close.csv", index=False)
 
     # 2. RSI t-1 < 30 & RSI t > 30
     df_rsi = df_close.loc[(df_close['RSI t-1'] < 30) & (df_close['RSI t'] > 30)]
-    df_rsi.to_csv(out_dir + "rsi.csv")
+    df_rsi.to_csv(out_dir + "rsi.csv", index=False)
 
     # 3. MACD t-1 < signal t-1 & MACD t > signal t
     df_macd = df_rsi.loc[(df_rsi['MACD t-1'] < df_rsi['signal t-1']) & (df_rsi['MACD t'] > df_rsi['signal t'])]
-    df_macd.to_csv(out_dir + "macd.csv")
+    df_macd.to_csv(out_dir + "macd.csv", index=False)
