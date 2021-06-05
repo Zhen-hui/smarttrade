@@ -2,11 +2,20 @@ import os
 import pandas as pd
 import yfinance as yf
 from datetime import datetime
+from utils import get_single_ticker_info
 
+import logging
 
 if __name__ == '__main__':
     screen_dir = './picks/'
     record_dir = './records/'
+
+    logname = record_dir + './log.txt'
+    logging.basicConfig(filename=logname,
+                                filemode='a',
+                                format='%(asctime)s,%(message)s',
+                                datefmt='%H:%M:%S',
+                                level=logging.INFO)
 
     date = datetime.today().strftime('%Y-%m-%d')
 
@@ -41,15 +50,19 @@ if __name__ == '__main__':
             continue
         name = security['name']
         cost = security['cost']
-        ticker = yf.Ticker(name).info
-        current_price = ticker['regularMarketPrice']
+        ticker_info = get_single_ticker_info(name)
+        #columns = ['ticker', 'close t', 'volume t', 'RSI t', 'MACD t', 'signal t', 
+        #          'close t-1', 'volume t-1', 'RSI t-1', 'MACD t-1', 'signal t-1']
+
+        current_price = ticker_info[1]
 
         # conditions for selling
         # stop loss
         if current_price < cost:
-            loss_ratio = (cost - current_price)/cost
+            loss_ratio = (current_price - cost)/cost
             if loss_ratio > 0.1:
-                print('sell {} at a {} percent loss'.format(name, loss_ratio*100))
+                print('sell {} at a loss: {}%'.format(name, loss_ratio*100))
+                logging.info('sell {} at a loss: {}%'.format(name, loss_ratio*100))
                 fund += current_pice * security['quantity']
             else: 
                 keep_position = True
@@ -57,17 +70,47 @@ if __name__ == '__main__':
         if current_price >= cost:
             gain_ratio = (current_price - cost)/cost
             if gain_ratio > 0.15:
-                print('sell {} at a {} percent gain'.format(name, gain_ratio*100))
+                print('sell {} at a gain: {}%'.format(name, gain_ratio*100))
+                logging.info('sell {} at a gain: {}%'.format(name, gain_ratio*100))
                 fund += current_pice * security['quantity']
             else: 
                 keep_position = True
-        # TODO rsi kill
-        # TODO price drop kill
-        # TODO inactive kill
+        # rsi kill
+        rsi = ticker_info[3]
+        if rsi >= 60:
+            change_ratio = (current_price - cost)/cost
+            print('rsi indicates overbought, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
+            logging.info('rsi indicates overbought, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
+            fund += current_pice * security['quantity']
+        else: 
+            keep_position = True
+        # price drop kill
+        previous_price = ticker_info[6]
+        price_change = (current_price - previous_price)/previous_price
+        if price_change < - 0.05:
+            change_ratio = (current_price - cost)/cost
+            print('great price drop in one day, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
+            logging.info('great price drop in one day, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
+            fund += current_pice * security['quantity']
+        else: 
+            keep_position = True
+        # inactive kill
+        current_date = datetime.strptime(date, '%Y-%m-%d')
+        open_date = datetime.strptime(security['open_date'], '%Y-%m-%d')
+        days_past = current_date - open_date
+        if int(days_past.days) > 5:
+            change_ratio = (current_price - cost)/cost
+            print('no change for a long period, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
+            logging.info('no change for a long period, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
+            fund += current_pice * security['quantity']
+        else: 
+            keep_position = True
+            
+        # no update
         if keep_position:
             print('{} position no change'.format(name))
             security['current price'] = current_price
-            security['value'] = current_price * security['quantity']
+            security['market value'] = current_price * security['quantity']
             portfolio_update.append(security)
 
     ## open new positions

@@ -9,10 +9,11 @@ import dateutil.relativedelta
 import warnings
 warnings.filterwarnings('ignore')
 
+MIN_VOLUME = 50000
 
 def get_ticker_record(ticker):
     today = dt.datetime.today().strftime('%Y-%m-%d')
-    previous_date = dt.datetime.today() - dateutil.relativedelta.relativedelta(months=1)
+    previous_date = dt.datetime.today() - dateutil.relativedelta.relativedelta(months=3)
     previous_date = previous_date.strftime('%Y-%m-%d')
 
     df = pdr.get_data_yahoo(ticker, previous_date, today)
@@ -20,7 +21,6 @@ def get_ticker_record(ticker):
 
 
 def compute_rsi(ticker_record):
-
     df = ticker_record
     ## Compute 14_Day RSI
     df['Up Move'] = np.nan
@@ -84,6 +84,8 @@ def get_single_ticker_info(ticker):
     
     try:
         ticker_record = get_ticker_record(ticker)
+        if ticker_record['Volume'][-1] < MIN_VOLUME:
+            return None
         ticker_record = compute_rsi(ticker_record)
         ticker_record = compute_macd(ticker_record)
         ticker_record
