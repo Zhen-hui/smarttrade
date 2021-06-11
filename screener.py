@@ -51,8 +51,8 @@ if __name__ == '__main__':
     df = pd.DataFrame(all_tickers, columns = columns)
 
     # 0. filter by volume
-    #df_vol = df.loc[df['volume t'] > 50000]
-    df_vol = df # volume has been filtered in screener
+    df_vol = df.loc[df['volume t'] > 50000]
+    #df_vol = df # volume has been filtered in screener
     df_vol.to_csv(out_dir + "volume.csv", index=False)
 
     # 1. close t > close t-1

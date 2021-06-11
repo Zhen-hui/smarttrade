@@ -45,12 +45,12 @@ if __name__ == '__main__':
     ## update existing positions
     portfolio_update = list()
     for security in portfolio:
-        keep_position = False
+        keep_position = True
         if security['name'] == 'USD':
             continue
         name = security['name']
         cost = security['cost']
-        ticker_info = get_single_ticker_info(name)
+        ticker_info = get_single_ticker_info(name, False)
         #columns = ['ticker', 'close t', 'volume t', 'RSI t', 'MACD t', 'signal t', 
         #          'close t-1', 'volume t-1', 'RSI t-1', 'MACD t-1', 'signal t-1']
 
@@ -64,26 +64,32 @@ if __name__ == '__main__':
                 print('sell {} at a loss: {}%'.format(name, loss_ratio*100))
                 logging.info('sell {} at a loss: {}%'.format(name, loss_ratio*100))
                 fund += current_pice * security['quantity']
+                keep_position = False
+                continue
             else: 
-                keep_position = True
+                keep_position = True and keep_position
         # stop gain
         if current_price >= cost:
             gain_ratio = (current_price - cost)/cost
             if gain_ratio > 0.15:
                 print('sell {} at a gain: {}%'.format(name, gain_ratio*100))
                 logging.info('sell {} at a gain: {}%'.format(name, gain_ratio*100))
-                fund += current_pice * security['quantity']
+                fund += current_price * security['quantity']
+                keep_position = False
+                continue
             else: 
-                keep_position = True
+                keep_position = True and keep_position
         # rsi kill
         rsi = ticker_info[3]
         if rsi >= 60:
             change_ratio = (current_price - cost)/cost
             print('rsi indicates overbought, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
             logging.info('rsi indicates overbought, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
-            fund += current_pice * security['quantity']
+            fund += current_price * security['quantity']
+            keep_position = False
+            continue
         else: 
-            keep_position = True
+            keep_position = True and keep_position
         # price drop kill
         previous_price = ticker_info[6]
         price_change = (current_price - previous_price)/previous_price
@@ -91,9 +97,11 @@ if __name__ == '__main__':
             change_ratio = (current_price - cost)/cost
             print('great price drop in one day, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
             logging.info('great price drop in one day, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
-            fund += current_pice * security['quantity']
+            fund += current_price * security['quantity']
+            keep_position = False
+            continue
         else: 
-            keep_position = True
+            keep_position = True and keep_position
         # inactive kill
         current_date = datetime.strptime(date, '%Y-%m-%d')
         open_date = datetime.strptime(security['open_date'], '%Y-%m-%d')
@@ -102,9 +110,11 @@ if __name__ == '__main__':
             change_ratio = (current_price - cost)/cost
             print('no change for a long period, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
             logging.info('no change for a long period, sell {} at a gain/loss: {}%'.format(name, change_ratio*100))
-            fund += current_pice * security['quantity']
+            fund += current_price * security['quantity']
+            keep_position = False
+            continue
         else: 
-            keep_position = True
+            keep_position = True and keep_position
             
         # no update
         if keep_position:
@@ -124,54 +134,52 @@ if __name__ == '__main__':
         picks = picks[:5]
     to_open = len(picks)
 
-    if fund > 0:
-        if len(picks) > 0:
-            fund_each = fund/to_open
+    # update securities
+    for ticker in picks:
+        fund_each = 0.25*fund
+        fund = fund - fund_each
+        if fund > 0:
             # update fund
-            security = dict()
-            security['name'] = 'USD'
-            security['market value'] = 0
-            security['current price'] = None
-            security['quantity'] = None
-            security['cost'] = None
-            security['open_date'] = None
-            portfolio_update.append(security)
-            # update securities
-            for ticker in picks:
-                name = ticker['ticker']
-                price = ticker['close t']
-                shares = fund_each/price
-                
-                security = dict()
-                security['name'] = name
-                security['market value'] = fund_each
-                security['current price'] = price
-                security['quantity'] = shares
-                security['cost'] = price
-                security['open_date'] = date
-                portfolio_update.append(security)
+            #security = dict()
+            #security['name'] = 'USD'
+            #security['market value'] = 0
+            #security['current price'] = None
+            #security['quantity'] = None
+            #security['cost'] = None
+            #security['open_date'] = None
+            #portfolio_update.append(security)
 
-                print('open position: {} shares of {} on {}'.format(shares, name, date))
-        else:
+            name = ticker['ticker']
+            price = ticker['close t']
+            shares = fund_each/price
+            
             security = dict()
-            security['name'] = 'USD'
-            security['market value'] = fund
-            security['current price'] = None
-            security['quantity'] = None
-            security['cost'] = None
-            security['open_date'] = None
+            security['name'] = name
+            security['market value'] = fund_each
+            security['current price'] = price
+            security['quantity'] = shares
+            security['cost'] = price
+            security['open_date'] = date
             portfolio_update.append(security)
-            print('No new positions today, avaliable fund {}'.format(fund))
-    else:
-        security = dict()
-        security['name'] = 'USD'
-        security['market value'] = 0
-        security['current price'] = None
-        security['quantity'] = None
-        security['cost'] = None
-        security['open_date'] = None
-        portfolio_update.append(security)
-        print('Not enough fund to open new positions')
+            print('open position: {} shares of {} on {}'.format(shares, name, date))
+        else:
+            print('not enough funds to open more new positions')
+            fund = 0
+
+    # update fund
+    security = dict()
+    security['name'] = 'USD'
+    security['market value'] = fund
+    security['current price'] = None
+    security['quantity'] = None
+    security['cost'] = None
+    security['open_date'] = None
+    portfolio_update.append(security)
+
+    if len(picks) == 0:
+        print('No new positions today, avaliable fund {}'.format(fund))
+
+    # write updated portfolio
     portfolio_df = pd.DataFrame(portfolio_update, columns=portfolio[0].keys())
     total_value = sum(portfolio_df['market value'])
     print('Total market value on {}: {}'.format(date, total_value))

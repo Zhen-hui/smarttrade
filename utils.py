@@ -80,11 +80,11 @@ def compute_macd(ticker_record):
     
     return df
 
-def get_single_ticker_info(ticker):
+def get_single_ticker_info(ticker, filter_volume=True):
     
     try:
         ticker_record = get_ticker_record(ticker)
-        if ticker_record['Volume'][-1] < MIN_VOLUME:
+        if filter_volume  and ticker_record['Volume'][-1] < MIN_VOLUME:
             return None
         ticker_record = compute_rsi(ticker_record)
         ticker_record = compute_macd(ticker_record)
