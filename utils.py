@@ -16,12 +16,17 @@ def get_ticker_record(ticker):
     previous_date = dt.datetime.today() - dateutil.relativedelta.relativedelta(months=3)
     previous_date = previous_date.strftime('%Y-%m-%d')
 
+    """
     df = pdr.get_data_yahoo(ticker, previous_date, today)
+    """
+    df = yf.Ticker(ticker).history(start=previous_date, end=today)
     return df
 
 
 def compute_rsi(ticker_record):
     df = ticker_record
+    if not 'Adj Close' in df:
+        df['Adj Close'] = df['Close']
     ## Compute 14_Day RSI
     df['Up Move'] = np.nan
     df['Down Move'] = np.nan
@@ -117,16 +122,15 @@ def get_single_ticker_info(ticker, filter_volume=True):
 
         return single_ticker_info
     except Exception as e:
-        #print(e)
+        print(e)
         return None
 
 
 if __name__ == '__main__':
     ticker = 'BB'
-    ticker_record = get_ticker_record(ticker)
-    print(ticker_record)
-    exit()
-    ticker_record = compute_rsi(ticker_record)
-    ticker_record = compute_macd(ticker_record)
-    ticker_record
 
+    ticker_info = get_single_ticker_info(ticker)
+    #ticker_info = get_ticker_record(ticker)
+    #ticker_info = yf.Ticker(ticker).history(period='3mo')
+
+    print(ticker_info)
