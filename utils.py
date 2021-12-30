@@ -12,7 +12,8 @@ warnings.filterwarnings('ignore')
 MIN_VOLUME = 50000
 
 def get_ticker_record(ticker):
-    today = dt.datetime.today().strftime('%Y-%m-%d')
+    #today = dt.datetime.today().strftime('%Y-%m-%d')
+    today = (dt.datetime.today() + dt.timedelta(days=1)).strftime('%Y-%m-%d')
     previous_date = dt.datetime.today() - dateutil.relativedelta.relativedelta(months=3)
     previous_date = previous_date.strftime('%Y-%m-%d')
 
@@ -127,10 +128,11 @@ def get_single_ticker_info(ticker, filter_volume=True):
 
 
 if __name__ == '__main__':
-    ticker = 'BB'
+    ticker = 'RENT'
 
+    ticker_info = get_ticker_record(ticker)
+    print(ticker_info)
     ticker_info = get_single_ticker_info(ticker)
-    #ticker_info = get_ticker_record(ticker)
     #ticker_info = yf.Ticker(ticker).history(period='3mo')
 
     print(ticker_info)

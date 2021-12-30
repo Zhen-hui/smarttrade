@@ -71,7 +71,7 @@ if __name__ == '__main__':
         # stop gain
         if current_price >= cost:
             gain_ratio = (current_price - cost)/cost
-            if gain_ratio > 0.15:
+            if gain_ratio > 0.1:
                 print('sell {} at a gain: {}%'.format(name, gain_ratio*100))
                 logging.info('sell {} at a gain: {}%'.format(name, gain_ratio*100))
                 fund += current_price * security['quantity']
