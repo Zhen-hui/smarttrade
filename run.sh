@@ -1,2 +1,2 @@
-/home/rickyzhang/smarttrade/.env/bin/python screener.py
-/home/rickyzhang/smarttrade/.env/bin/python sim.py
+/usr/bin/python3 screener.py
+/usr/bin/python3 sim.py

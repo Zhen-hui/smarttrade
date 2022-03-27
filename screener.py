@@ -14,7 +14,7 @@ DELAY = 1.6
 if __name__ == '__main__':
     warnings.filterwarnings('ignore')
 
-    out_dir = '/home/rickyzhang/smarttrade/picks/'
+    out_dir = 'picks/'
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
     file_lst = os.listdir(out_dir)
