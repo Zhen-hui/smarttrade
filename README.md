@@ -10,10 +10,10 @@ In this project, we are writing python functions to pick stocks based on defined
 
 
 **Prerequisites to run the program:**
-1. Download a list of NASDAQ stock symbols from https://www.nasdaq.com/market-activity/stocks/screener as 'nasdaq_screener.csv' to the project folder.
+1. Download a list of NASDAQ stock symbols from https://www.nasdaq.com/market-activity/stocks/screener as 'nasdaq_screener.csv' to the project folder. To visualize data in the downloaded sccreener, I also built this interactive Tableau dashboard: https://public.tableau.com/app/profile/zhenhui.trinh/viz/NASDAQStockScreenerAnalysis/IPOTrend_1
 2. Make sure all the required packages are installed by simply running the below command in your terminal.
 
-``` 
-pip3 install -r requirements.txt --user
-```
+  ``` 
+  pip3 install -r requirements.txt --user
+  ```
 
